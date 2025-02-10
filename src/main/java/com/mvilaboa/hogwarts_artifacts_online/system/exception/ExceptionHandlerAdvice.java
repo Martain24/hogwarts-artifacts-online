@@ -19,13 +19,13 @@ import com.mvilaboa.hogwarts_artifacts_online.system.StatusCode;
 public class ExceptionHandlerAdvice {
     
     @ExceptionHandler({ArtifactNotFoundException.class})
-    ResponseEntity<Result> handleArtifactNotFoundException(ArtifactNotFoundException ex) {
-        Result resultToSend = new Result(false, StatusCode.NOT_FOUND, ex.getMessage());
+    ResponseEntity<Result<String>> handleArtifactNotFoundException(ArtifactNotFoundException ex) {
+        Result<String> resultToSend = new Result<>(false, StatusCode.NOT_FOUND, ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(resultToSend);
     }
 
     @ExceptionHandler({MethodArgumentNotValidException.class})
-    ResponseEntity<Result> handleValidationException(MethodArgumentNotValidException ex) {
+    ResponseEntity<Result<Map<String, String>>> handleValidationException(MethodArgumentNotValidException ex) {
 
         List<FieldError> errors = ex.getBindingResult().getAllErrors()
                 .stream().map(e -> ((FieldError) e)).toList();
@@ -38,7 +38,7 @@ public class ExceptionHandlerAdvice {
             jsonData.put(key, val);
         });
 
-        Result resultToSend = new Result(
+        Result<Map<String, String>> resultToSend = new Result<>(
             false,
             StatusCode.INVALID_ARGUMENT,
             "Provided arguments are invalid",
