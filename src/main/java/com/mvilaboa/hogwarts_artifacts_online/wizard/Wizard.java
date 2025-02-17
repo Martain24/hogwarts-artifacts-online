@@ -8,6 +8,8 @@ import com.mvilaboa.hogwarts_artifacts_online.artifact.Artifact;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -17,6 +19,7 @@ import jakarta.persistence.Table;
 public class Wizard implements Serializable {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     private String name;
@@ -54,6 +57,11 @@ public class Wizard implements Serializable {
     public void addArtifact(Artifact artifact) {
         artifact.setOwner(this);
         this.artifacts.add(artifact);
+    }
+
+    public void deleteArtifact(Artifact artifact) {
+        artifact.setOwner(null);
+        this.artifacts.remove(artifact);
     }
 
     public Integer getNumberOfArtifacts() {

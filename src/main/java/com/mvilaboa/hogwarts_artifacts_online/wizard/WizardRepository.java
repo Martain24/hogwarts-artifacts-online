@@ -12,4 +12,6 @@ public interface WizardRepository extends JpaRepository<Wizard, Integer> {
     Optional<Wizard> findOneById(Integer id);
 
     List<Wizard> findAllByOrderByName();
+
+    boolean existsByName(String name);
 }

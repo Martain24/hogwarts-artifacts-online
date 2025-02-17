@@ -1,5 +1,6 @@
 package com.mvilaboa.hogwarts_artifacts_online.artifact;
 
+import com.mvilaboa.hogwarts_artifacts_online.system.exception.ObjectNotFoundException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -102,7 +103,7 @@ public class ArtifactServiceTest {
 
         // Then. Assert expected outcomes
         assertThat(thrown)
-                .isInstanceOf(ArtifactNotFoundException.class)
+                .isInstanceOf(ObjectNotFoundException.class)
                 .hasMessage("Could not find artifact with Id 125478892313 :(");
 
         verify(artifactRepository, times(1)).findOneById("125478892313"); // Verify artifactRepository calls one time findById method.
@@ -194,7 +195,7 @@ public class ArtifactServiceTest {
 
         // Then
         assertThat(throwable)
-                .isInstanceOf(ArtifactNotFoundException.class)
+                .isInstanceOf(ObjectNotFoundException.class)
                 .hasMessage("Could not find artifact with Id 125478892313 :(");
 
         verify(artifactRepository, times(1))
@@ -232,7 +233,7 @@ public class ArtifactServiceTest {
 
         // When
         assertThrows(
-                ArtifactNotFoundException.class, 
+                ObjectNotFoundException.class,
                 () -> artifactService.delete("3243242353"));
 
         // Then

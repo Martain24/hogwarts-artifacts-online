@@ -7,15 +7,16 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import java.util.List;
 import java.util.Optional;
 
+import com.mvilaboa.hogwarts_artifacts_online.system.exception.ObjectNotFoundException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 
 import com.mvilaboa.hogwarts_artifacts_online.artifact.Artifact;
-import com.mvilaboa.hogwarts_artifacts_online.artifact.ArtifactNotFoundException;
 import com.mvilaboa.hogwarts_artifacts_online.artifact.ArtifactRepository;
 import com.mvilaboa.hogwarts_artifacts_online.artifact.ArtifactService;
 
@@ -69,7 +70,7 @@ public class ArtifactServiceTest {
 
         // Then
         assertThat(throwable)
-                .isInstanceOf(ArtifactNotFoundException.class)
+                .isInstanceOf(ObjectNotFoundException.class)
                 .hasMessage(
                     "Could not find artifact with Id " + aNotExistingArtifactIdInTestDb + " :(");
 
@@ -171,7 +172,7 @@ public class ArtifactServiceTest {
 
         // Then
         assertThat(throwable)
-                .isInstanceOf(ArtifactNotFoundException.class)
+                .isInstanceOf(ObjectNotFoundException.class)
                 .hasMessage("Could not find artifact with Id " + aNotExistingArtifactId + " :(");
 
     }
@@ -203,7 +204,7 @@ public class ArtifactServiceTest {
 
         // Then
         assertThat(throwable)
-                .isInstanceOf(ArtifactNotFoundException.class)
+                .isInstanceOf(ObjectNotFoundException.class)
                 .hasMessage("Could not find artifact with Id " + aNotExistingArtifactId + " :(");
                 
     }

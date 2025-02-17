@@ -11,20 +11,28 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.mvilaboa.hogwarts_artifacts_online.artifact.ArtifactNotFoundException;
 import com.mvilaboa.hogwarts_artifacts_online.system.Result;
 import com.mvilaboa.hogwarts_artifacts_online.system.StatusCode;
+import com.mvilaboa.hogwarts_artifacts_online.wizard.exception.WizardNameAlreadyInDbException;
 
 @RestControllerAdvice
 public class ExceptionHandlerAdvice {
-    
-    @ExceptionHandler({ArtifactNotFoundException.class})
-    ResponseEntity<Result<String>> handleArtifactNotFoundException(ArtifactNotFoundException ex) {
+
+    @ExceptionHandler({ObjectNotFoundException.class})
+    ResponseEntity<Result<String>> handleNotFoundInDbExceptions(Exception ex) {
         Result<String> resultToSend = new Result<>(false, StatusCode.NOT_FOUND, ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(resultToSend);
     }
 
-    @ExceptionHandler({MethodArgumentNotValidException.class})
+    @ExceptionHandler({
+            WizardNameAlreadyInDbException.class
+    })
+    ResponseEntity<Result<String>> handleAlreadyInDbExceptions(Exception ex) {
+        Result<String> resultToSend = new Result<>(false, StatusCode.INVALID_ARGUMENT, ex.getMessage());
+        return ResponseEntity.status(StatusCode.INVALID_ARGUMENT).body(resultToSend);
+    }
+
+    @ExceptionHandler({ MethodArgumentNotValidException.class })
     ResponseEntity<Result<Map<String, String>>> handleValidationException(MethodArgumentNotValidException ex) {
 
         List<FieldError> errors = ex.getBindingResult().getAllErrors()
@@ -39,11 +47,10 @@ public class ExceptionHandlerAdvice {
         });
 
         Result<Map<String, String>> resultToSend = new Result<>(
-            false,
-            StatusCode.INVALID_ARGUMENT,
-            "Provided arguments are invalid",
-            jsonData
-        );
+                false,
+                StatusCode.INVALID_ARGUMENT,
+                "Provided arguments are invalid",
+                jsonData);
 
         return ResponseEntity.badRequest().body(resultToSend);
     }
