@@ -22,7 +22,7 @@ import com.mvilaboa.hogwarts_artifacts_online.system.StatusCode;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("api/v1/artifacts")
+@RequestMapping("${api.endpoint.base-url}/artifacts")
 public class ArtifactController {
 
     private final ArtifactService artifactService;
@@ -50,7 +50,7 @@ public class ArtifactController {
         return ResponseEntity.ok().body(resultToSend);
     }
 
-    @GetMapping("/")
+    @GetMapping({"/", ""})
     public ResponseEntity<Result<List<ArtifactDto>>> findAllArtifacts() {
 
         List<ArtifactDto> foundArtifacts = this.artifactService.findAll()
@@ -68,7 +68,7 @@ public class ArtifactController {
     }
 
 
-    @PostMapping("/")
+    @PostMapping({"/", ""})
     public ResponseEntity<Result<ArtifactDto>> addArtifact(@Valid @RequestBody ArtifactDto artifactDto) {
         Artifact newArtifact = artifactDtoToArtifactConverter.convert(artifactDto);
         Artifact savedArtifact = this.artifactService.save(newArtifact);
