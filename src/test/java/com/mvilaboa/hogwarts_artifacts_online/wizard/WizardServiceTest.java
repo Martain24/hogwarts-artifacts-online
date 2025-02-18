@@ -16,7 +16,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,211 +26,289 @@ import com.mvilaboa.hogwarts_artifacts_online.wizard.exception.WizardNameAlready
 @TestPropertySource("classpath:application-test.properties")
 public class WizardServiceTest {
 
-    @Autowired
-    WizardRepository wizardRepository;
+	@Autowired
+	WizardRepository wizardRepository;
 
-    @Autowired
-    ArtifactRepository artifactRepository;
+	@Autowired
+	ArtifactRepository artifactRepository;
 
-    @Autowired
-    WizardService wizardService;
+	@Autowired
+	WizardService wizardService;
 
-    Integer existentWizardId;
-    Integer anotherExistentWizardId;
-    Integer nonExistentWizardId;
+	String existentArtifactId;
+	Integer existentWizardId;
+	Integer anotherExistentWizardId;
+	Integer nonExistentWizardId;
 
-    @BeforeEach
-    void setUp() {
-        existentWizardId = 1;
-        anotherExistentWizardId = 2;
-        nonExistentWizardId = 20;
+	@BeforeEach
+	void setUp() {
+		existentWizardId = 1;
+		anotherExistentWizardId = 2;
+		nonExistentWizardId = 20;
+		existentArtifactId = "artifact9";
 
-        assertThat(wizardRepository.existsById(existentWizardId)).isTrue();
-        assertThat(wizardRepository.existsById(anotherExistentWizardId)).isTrue();
-        assertThat(wizardRepository.existsById(nonExistentWizardId)).isFalse();
-    }
+		assertThat(artifactRepository.existsById(existentArtifactId)).isTrue();
+		assertThat(wizardRepository.existsById(existentWizardId)).isTrue();
+		assertThat(wizardRepository.existsById(anotherExistentWizardId)).isTrue();
+		assertThat(wizardRepository.existsById(nonExistentWizardId)).isFalse();
 
-    @AfterEach
-    void tearDown() {
-    }
+	}
 
-    @Test
-    void testFindByIdSuccess() {
+	@AfterEach
+	void tearDown() {
+	}
 
-        // When
-        Wizard serviceWizard = wizardService.findById(existentWizardId);
-        Wizard repoWizard = wizardRepository.findOneById(existentWizardId).orElseThrow();
+	@Test
+	void testFindByIdSuccess() {
 
-        // Then
-        assertThat(serviceWizard.getId()).isEqualTo(repoWizard.getId());
-        assertThat(serviceWizard.getName()).isEqualTo(repoWizard.getName());
-        assertThat(serviceWizard.getNumberOfArtifacts()).isEqualTo(repoWizard.getNumberOfArtifacts());
+		// When
+		Wizard serviceWizard = wizardService.findById(existentWizardId);
+		Wizard repoWizard = wizardRepository.findOneById(existentWizardId).orElseThrow();
 
-    }
+		// Then
+		assertThat(serviceWizard.getId()).isEqualTo(repoWizard.getId());
+		assertThat(serviceWizard.getName()).isEqualTo(repoWizard.getName());
+		assertThat(serviceWizard.getNumberOfArtifacts())
+				.isEqualTo(repoWizard.getNumberOfArtifacts());
 
-    @Test
-    void testFindByIdWizardNotFoundException() {
+	}
 
-        // When
-        Optional<Wizard> wizardRepo = wizardRepository.findOneById(nonExistentWizardId);
-        Throwable throwable = catchThrowable(() -> wizardService.findById(nonExistentWizardId));
+	@Test
+	void testFindByIdWizardNotFoundException() {
 
-        // Then
-        assertThat(wizardRepo).isEmpty();
-        assertThat(throwable)
-                .isInstanceOf(ObjectNotFoundException.class)
-                .hasMessage("Could not find wizard with Id " + nonExistentWizardId + " :(");
+		// When
+		Optional<Wizard> wizardRepo = wizardRepository.findOneById(nonExistentWizardId);
+		Throwable throwable = catchThrowable(() -> wizardService.findById(nonExistentWizardId));
 
-    }
+		// Then
+		assertThat(wizardRepo).isEmpty();
+		assertThat(throwable)
+				.isInstanceOf(ObjectNotFoundException.class)
+				.hasMessage(getMessageOfWizardNotFoundError(nonExistentWizardId));
 
-    @Test
-    void testFindAllSuccess() {
+	}
 
-        // Given
-        List<Wizard> serviceWizards = wizardService.findAll();
-        List<Wizard> repoWizards = wizardRepository.findAllByOrderByName();
+	@Test
+	void testFindAllSuccess() {
 
-        // When and then
-        assertThat(serviceWizards.size()).isEqualTo(repoWizards.size());
-        for (int i = 0; i < repoWizards.size(); i++) {
-            Wizard sw = serviceWizards.get(i);
-            Wizard rw = repoWizards.get(i);
-            assertThat(sw.getId()).isEqualTo(rw.getId());
-            assertThat(sw.getName()).isEqualTo(rw.getName());
-            assertThat(sw.getNumberOfArtifacts()).isEqualTo(rw.getNumberOfArtifacts());
-        }
+		// Given
+		List<Wizard> serviceWizards = wizardService.findAll();
+		List<Wizard> repoWizards = wizardRepository.findAllByOrderByName();
 
-    }
+		// When and then
+		assertThat(serviceWizards.size()).isEqualTo(repoWizards.size());
+		for (int i = 0; i < repoWizards.size(); i++) {
+			Wizard sw = serviceWizards.get(i);
+			Wizard rw = repoWizards.get(i);
+			assertThat(sw.getId()).isEqualTo(rw.getId());
+			assertThat(sw.getName()).isEqualTo(rw.getName());
+			assertThat(sw.getNumberOfArtifacts()).isEqualTo(rw.getNumberOfArtifacts());
+		}
 
-    @Test
-    void testSaveWizardSuccess() {
-        // Given
-        Wizard newWizard = new Wizard();
-        newWizard.setName("Nuevo mago");
+	}
 
-        // When
-        Wizard savedWizard = wizardService.save(newWizard);
+	@Test
+	void testSaveWizardSuccess() {
+		// Given
+		Wizard newWizard = new Wizard();
+		newWizard.setName("Nuevo mago");
 
-        // Then
-        assertThat(wizardRepository.findOneById(savedWizard.getId())).isNotEmpty();
-        assertThat(savedWizard.getId()).isNotNull();
-        assertThat(newWizard.getName()).isEqualTo(savedWizard.getName());
-        assertThat(savedWizard.getArtifacts()).isEmpty();
+		// When
+		Wizard savedWizard = wizardService.save(newWizard);
 
-    }
+		// Then
+		assertThat(wizardRepository.findOneById(savedWizard.getId())).isNotEmpty();
+		assertThat(savedWizard.getId()).isNotNull();
+		assertThat(newWizard.getName()).isEqualTo(savedWizard.getName());
+		assertThat(savedWizard.getArtifacts()).isEmpty();
 
-    @Test
-    void testSaveWizardWithANameThatAlreadyExists() {
+	}
 
-        // Given
-        Wizard wizardWithRepeatedName = wizardRepository.findOneById(existentWizardId).orElseThrow();
+	@Test
+	void testSaveWizardWithANameThatAlreadyExists() {
 
-        // When
-        Throwable throwable = catchThrowable(() -> wizardService.save(wizardWithRepeatedName));
+		// Given
+		Wizard wizardWithRepeatedName = wizardRepository.findOneById(existentWizardId)
+				.orElseThrow();
 
-        // Then
-        assertThat(throwable)
-                .isInstanceOf(WizardNameAlreadyInDbException.class)
-                .hasMessage("Already exists a wizard with Name " + wizardWithRepeatedName.getName() + " :(");
+		// When
+		Throwable throwable = catchThrowable(() -> wizardService.save(wizardWithRepeatedName));
 
-    }
+		// Then
+		assertThat(throwable)
+				.isInstanceOf(WizardNameAlreadyInDbException.class)
+				.hasMessage(getMessageOfRepeatedWizardName(wizardWithRepeatedName.getName()));
 
-    @Test
-    void testUpdateWizardSuccess() {
+	}
 
-        // Given
-        Wizard wizardWithNewName = new Wizard();
-        wizardWithNewName.setName("New Name");
+	@Test
+	void testUpdateWizardSuccess() {
 
-        // When
-        Wizard wizardUpdatedService = wizardService.updateById(existentWizardId, wizardWithNewName);
-        Wizard wizardUpdatedRepo = wizardRepository.findOneById(existentWizardId).orElseThrow();
+		// Given
+		Wizard wizardWithNewName = new Wizard();
+		wizardWithNewName.setName("New Name");
 
-        // Then
-        assertThat(wizardUpdatedService.getId())
-                .isEqualTo(existentWizardId)
-                .isEqualTo(wizardUpdatedRepo.getId());
+		// When
+		Wizard wizardUpdatedService = wizardService.updateById(existentWizardId, wizardWithNewName);
+		Wizard wizardUpdatedRepo = wizardRepository.findOneById(existentWizardId).orElseThrow();
 
-        assertThat(wizardUpdatedService.getName())
-                .isEqualTo(wizardWithNewName.getName())
-                .isEqualTo(wizardUpdatedRepo.getName());
+		// Then
+		assertThat(wizardUpdatedService.getId())
+				.isEqualTo(existentWizardId)
+				.isEqualTo(wizardUpdatedRepo.getId());
 
-        assertThat(wizardUpdatedService.getNumberOfArtifacts())
-                .isEqualTo(wizardUpdatedRepo.getNumberOfArtifacts());
-    }
+		assertThat(wizardUpdatedService.getName())
+				.isEqualTo(wizardWithNewName.getName())
+				.isEqualTo(wizardUpdatedRepo.getName());
 
-    @Test
-    void testUpdateWizardWithNonExistentId() {
+		assertThat(wizardUpdatedService.getNumberOfArtifacts())
+				.isEqualTo(wizardUpdatedRepo.getNumberOfArtifacts());
+	}
 
-        // Given
-        Wizard wizard = new Wizard();
-        wizard.setName("Any Name");
+	@Test
+	void testUpdateWizardWithNonExistentId() {
 
-        // When
-        Throwable throwable = catchThrowable(
-                () -> wizardService.updateById(nonExistentWizardId, wizard)
-        );
+		// Given
+		Wizard wizard = new Wizard();
+		wizard.setName("Any Name");
 
-        // Then
-        assertThat(throwable)
-                .isInstanceOf(ObjectNotFoundException.class)
-                .hasMessage("Could not find wizard with Id " + nonExistentWizardId + " :(");
-    }
+		// When
+		Throwable throwable = catchThrowable(
+				() -> wizardService.updateById(nonExistentWizardId, wizard));
 
+		// Then
+		assertThat(throwable)
+				.isInstanceOf(ObjectNotFoundException.class)
+				.hasMessage(getMessageOfWizardNotFoundError(nonExistentWizardId));
+	}
 
-    @Test
-    void testUpdateWizardWithANameThatAlreadyExists() {
+	@Test
+	void testUpdateWizardWithANameThatAlreadyExists() {
 
-        // Given
-        Wizard wizardWithNameThatExists = new Wizard();
-        wizardWithNameThatExists.setName(
-                wizardRepository
-                        .findOneById(existentWizardId).orElseThrow().getName());
-        
-        // When
-        Throwable throwable = catchThrowable(
-                () -> wizardService.updateById(anotherExistentWizardId, wizardWithNameThatExists)
-        );
+		// Given
+		Wizard wizardWithNameThatExists = new Wizard();
+		wizardWithNameThatExists.setName(
+				wizardRepository
+						.findOneById(existentWizardId).orElseThrow().getName());
 
-        // Then
-        assertThat(throwable)
-                .isInstanceOf(WizardNameAlreadyInDbException.class)
-                .hasMessage("Already exists a wizard with Name " + wizardWithNameThatExists.getName() + " :(");
-    }
+		// When
+		Throwable throwable = catchThrowable(
+				() -> wizardService.updateById(anotherExistentWizardId, wizardWithNameThatExists));
 
-    @Test
-    void testDeleteWizardSuccess() {
-        // Given
-        long wizardCountBefore = wizardRepository.count();
-        Set<String> artifactsIds = wizardRepository.findOneById(existentWizardId)
-                .orElseThrow()
-                .getArtifacts()
-                .stream().map(Artifact::getId)
-                .collect(Collectors.toSet());
+		// Then
+		assertThat(throwable)
+				.isInstanceOf(WizardNameAlreadyInDbException.class)
+				.hasMessage(getMessageOfRepeatedWizardName(wizardWithNameThatExists.getName()));
+	}
 
-        // When
-        wizardService.deleteById(existentWizardId);
+	@Test
+	void testDeleteWizardSuccess() {
+		// Given
+		long wizardCountBefore = wizardRepository.count();
+		Set<String> artifactsIds = wizardRepository.findOneById(existentWizardId)
+				.orElseThrow()
+				.getArtifacts()
+				.stream().map(Artifact::getId)
+				.collect(Collectors.toSet());
 
-        // Then
-        assertThat(wizardRepository.count()).isEqualTo(wizardCountBefore - 1); // Se eliminó solo uno
-        assertThat(wizardRepository.findOneById(existentWizardId)).isEmpty();
+		// When
+		wizardService.deleteById(existentWizardId);
 
-        artifactsIds.forEach((artifactId) -> {
-            Optional<Artifact> optionalArtifact = artifactRepository.findOneById(artifactId);
-            assertThat(optionalArtifact).isNotEmpty();
-            assertThat(optionalArtifact.orElseThrow().getOwner()).isNull();
-        });
-    }
+		// Then
+		assertThat(wizardRepository.count()).isEqualTo(wizardCountBefore - 1);
+		assertThat(wizardRepository.findOneById(existentWizardId)).isEmpty();
 
-    @Test
-    void testDeleteWizardWithNonExistentId() {
-        // When
-        Throwable throwable = catchThrowable(() -> wizardService.deleteById(nonExistentWizardId));
+		artifactsIds.forEach((artifactId) -> {
+			Optional<Artifact> optionalArtifact = artifactRepository.findOneById(artifactId);
+			assertThat(optionalArtifact).isNotEmpty();
+			assertThat(optionalArtifact.orElseThrow().getOwner()).isNull();
+		});
+	}
 
-        // Then
-        assertThat(throwable)
-                .isInstanceOf(ObjectNotFoundException.class)
-                .hasMessage("Could not find wizard with Id " + nonExistentWizardId + " :(");
-    }
+	@Test
+	void testDeleteWizardWithNonExistentId() {
+		// When
+		Throwable throwable = catchThrowable(() -> wizardService.deleteById(nonExistentWizardId));
+
+		// Then
+		assertThat(throwable)
+				.isInstanceOf(ObjectNotFoundException.class)
+				.hasMessage(getMessageOfWizardNotFoundError(nonExistentWizardId));
+	}
+
+	@Test
+	void testAssignArtifactSuccess() {
+
+		// Given
+		assertThat(getListOfArtifactsIdsOfWizard(existentWizardId))
+				.contains(existentArtifactId);
+
+		assertThat(getListOfArtifactsIdsOfWizard(anotherExistentWizardId))
+				.doesNotContain(existentArtifactId);
+
+		// When
+		wizardService.assignArtifact(anotherExistentWizardId, existentArtifactId);
+
+		// Then
+		Artifact updatedArtifact = artifactRepository.findOneById(existentArtifactId).orElseThrow();
+
+		assertThat(updatedArtifact.getOwner().getId()).isEqualTo(anotherExistentWizardId);
+		assertThat(getListOfArtifactsIdsOfWizard(anotherExistentWizardId))
+				.contains(updatedArtifact.getId());
+
+		assertThat(getListOfArtifactsIdsOfWizard(existentWizardId))
+				.doesNotContain(existentArtifactId);
+	}
+
+	@Test
+	void testAssignArtifactWithNonExistentWizardId() {
+		// Given
+		Artifact artifact = artifactRepository.findOneById(existentArtifactId).orElseThrow();
+
+		// When
+		Throwable throwable = catchThrowable(
+				() -> wizardService.assignArtifact(nonExistentWizardId, existentArtifactId));
+
+		// Then
+		assertThat(throwable)
+				.isInstanceOf(ObjectNotFoundException.class)
+				.hasMessage(getMessageOfWizardNotFoundError(nonExistentWizardId));
+		assertThat(artifactRepository.findOneById(existentArtifactId)
+				.orElseThrow().getOwner().getId()).isEqualTo(artifact.getOwner().getId());
+
+	}
+
+	@Test
+	void testAssignArtifactWithNonExistentArtifactId() {
+		// Given
+		String nonExistentArtifactId = "no_existe_este_id";
+
+		// When
+		Throwable throwable = catchThrowable(
+				() -> wizardService.assignArtifact(existentWizardId, nonExistentArtifactId));
+
+		// Then
+		assertThat(throwable)
+				.isInstanceOf(ObjectNotFoundException.class)
+				.hasMessage(getMessageOfArtifactNotFoundError(nonExistentArtifactId));
+
+	}
+
+	private List<String> getListOfArtifactsIdsOfWizard(Integer wizardId) {
+		return wizardRepository.findOneById(wizardId).orElseThrow()
+				.getArtifacts().stream().map(a -> a.getId()).toList();
+	}
+
+	private String getMessageOfWizardNotFoundError(Integer wizardId) {
+		return "Could not find wizard with Id " + wizardId + " :(";
+	}
+
+	private String getMessageOfArtifactNotFoundError(String artifactId) {
+		return "Could not find artifact with Id " + artifactId + " :(";
+	}
+
+	private String getMessageOfRepeatedWizardName(String wizardName) {
+		return "Already exists a wizard with Name " + wizardName + " :(";
+	}
 
 }

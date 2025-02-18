@@ -92,4 +92,14 @@ public class WizardController {
         return ResponseEntity.ok().body(new Result<>(true, StatusCode.SUCCESS, "Delete Success"));
     }
 
+    @PutMapping("/{wizardId}/artifacts/{artifactId}")
+    public ResponseEntity<Result<String>> assignArtifact(@PathVariable Integer wizardId, @PathVariable String artifactId) {
+        this.wizardService.assignArtifact(wizardId, artifactId);
+        Result<String> resultToSend = new Result<>();
+        resultToSend.setCode(StatusCode.SUCCESS);
+        resultToSend.setFlag(true);
+        resultToSend.setMessage("Artifact Assignment Success");
+        return ResponseEntity.ok().body(resultToSend);
+    }
+
 }

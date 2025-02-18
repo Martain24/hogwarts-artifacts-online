@@ -3,6 +3,8 @@ package com.mvilaboa.hogwarts_artifacts_online.wizard;
 import java.util.HashSet;
 import java.util.List;
 
+import com.mvilaboa.hogwarts_artifacts_online.artifact.Artifact;
+import com.mvilaboa.hogwarts_artifacts_online.artifact.ArtifactRepository;
 import com.mvilaboa.hogwarts_artifacts_online.system.exception.ObjectNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,9 +16,11 @@ import com.mvilaboa.hogwarts_artifacts_online.wizard.exception.WizardNameAlready
 public class WizardService {
 
     private final WizardRepository wizardRepository;
+    private final ArtifactRepository artifactRepository;
 
-    public WizardService(WizardRepository wizardRepository) {
+    public WizardService(WizardRepository wizardRepository, ArtifactRepository artifactRepository) {
         this.wizardRepository = wizardRepository;
+        this.artifactRepository = artifactRepository;
     }
 
     public Wizard findById(Integer wizardId) {
@@ -57,13 +61,34 @@ public class WizardService {
 
     public void deleteById(Integer wizardId) {
         Wizard wizardToDelete = wizardRepository.findOneById(wizardId).orElseThrow(
-                () -> new ObjectNotFoundException("wizard", wizardId)
-        );
+                () -> new ObjectNotFoundException("wizard", wizardId));
 
         wizardToDelete.getArtifacts().forEach(a -> a.setOwner(null));
         wizardToDelete.getArtifacts().clear();
 
         wizardRepository.deleteById(wizardId);
     }
+
+    public void assignArtifact(Integer wizardId, String artifactId) {
+
+        Artifact artifactToAssign = artifactRepository.findOneById(artifactId)
+                .orElseThrow(() -> new ObjectNotFoundException("artifact", artifactId));
+        Wizard wizardToUpdate = wizardRepository.findOneById(wizardId)
+                .orElseThrow(() -> new ObjectNotFoundException("wizard", wizardId));
+        Wizard assignedWizard = artifactToAssign.getOwner();
+    
+        if (assignedWizard != null && assignedWizard.equals(wizardToUpdate)) {
+            return;
+        }
+    
+        if (assignedWizard != null) {
+            assignedWizard.removeArtifact(artifactToAssign);
+        }
+    
+        wizardToUpdate.addArtifact(artifactToAssign);
+        wizardRepository.save(wizardToUpdate);
+        
+    }
+    
 
 }
