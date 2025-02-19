@@ -5,11 +5,10 @@ import java.util.List;
 
 import com.mvilaboa.hogwarts_artifacts_online.artifact.Artifact;
 import com.mvilaboa.hogwarts_artifacts_online.artifact.ArtifactRepository;
+import com.mvilaboa.hogwarts_artifacts_online.system.exception.AlreadyInDbException;
 import com.mvilaboa.hogwarts_artifacts_online.system.exception.ObjectNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.mvilaboa.hogwarts_artifacts_online.wizard.exception.WizardNameAlreadyInDbException;
 
 @Service
 @Transactional
@@ -34,7 +33,8 @@ public class WizardService {
 
     public Wizard save(Wizard wizard) {
         if (wizardRepository.existsByName(wizard.getName())) {
-            throw new WizardNameAlreadyInDbException(wizard.getName());
+            throw new AlreadyInDbException(
+                    "wizard", "Name", wizard.getName());
         }
         wizard.setId(null);
         wizard.setArtifacts(new HashSet<>());
@@ -51,7 +51,8 @@ public class WizardService {
         }
 
         if (wizardRepository.existsByName(wizard.getName())) {
-            throw new WizardNameAlreadyInDbException(wizard.getName());
+            throw new AlreadyInDbException(
+                    "wizard", "Name", wizard.getName());
         }
 
         wizardToUpdate.setName(wizard.getName());

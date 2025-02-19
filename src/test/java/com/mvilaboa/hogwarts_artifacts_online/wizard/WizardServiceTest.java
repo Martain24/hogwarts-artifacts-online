@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import com.mvilaboa.hogwarts_artifacts_online.artifact.Artifact;
 import com.mvilaboa.hogwarts_artifacts_online.artifact.ArtifactRepository;
+import com.mvilaboa.hogwarts_artifacts_online.system.exception.AlreadyInDbException;
 import com.mvilaboa.hogwarts_artifacts_online.system.exception.ObjectNotFoundException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -136,7 +137,7 @@ public class WizardServiceTest {
 
 		// Then
 		assertThat(throwable)
-				.isInstanceOf(WizardNameAlreadyInDbException.class)
+				.isInstanceOf(AlreadyInDbException.class)
 				.hasMessage(getMessageOfRepeatedWizardName(wizardWithRepeatedName.getName()));
 
 	}
@@ -197,7 +198,7 @@ public class WizardServiceTest {
 
 		// Then
 		assertThat(throwable)
-				.isInstanceOf(WizardNameAlreadyInDbException.class)
+				.isInstanceOf(AlreadyInDbException.class)
 				.hasMessage(getMessageOfRepeatedWizardName(wizardWithNameThatExists.getName()));
 	}
 

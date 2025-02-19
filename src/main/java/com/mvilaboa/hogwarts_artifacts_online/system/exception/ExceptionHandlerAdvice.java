@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.mvilaboa.hogwarts_artifacts_online.system.Result;
 import com.mvilaboa.hogwarts_artifacts_online.system.StatusCode;
-import com.mvilaboa.hogwarts_artifacts_online.wizard.exception.WizardNameAlreadyInDbException;
 
 @RestControllerAdvice
 public class ExceptionHandlerAdvice {
@@ -25,7 +24,7 @@ public class ExceptionHandlerAdvice {
     }
 
     @ExceptionHandler({
-            WizardNameAlreadyInDbException.class
+            AlreadyInDbException.class
     })
     ResponseEntity<Result<String>> handleAlreadyInDbExceptions(Exception ex) {
         Result<String> resultToSend = new Result<>(false, StatusCode.INVALID_ARGUMENT, ex.getMessage());
