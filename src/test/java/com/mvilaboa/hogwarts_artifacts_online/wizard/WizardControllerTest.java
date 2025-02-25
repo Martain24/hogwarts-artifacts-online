@@ -11,9 +11,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -29,7 +29,6 @@ import com.mvilaboa.hogwarts_artifacts_online.wizard.dto.WizardDto;
 @Transactional
 @SpringBootTest
 @TestPropertySource("classpath:application-test.properties")
-@AutoConfigureMockMvc
 public class WizardControllerTest {
 
 	@Autowired
@@ -47,6 +46,8 @@ public class WizardControllerTest {
 	@Autowired
 	ObjectMapper objectMapper;
 
+	String jwtToken;
+
 	String existentArtifactId;
 	String nonExistentArtifactId;
 	Integer existentWizardId;
@@ -56,7 +57,21 @@ public class WizardControllerTest {
 	String baseUrl;
 
 	@BeforeEach
-	void setUp() {
+	void setUp() throws Exception {
+		String jsonResponse = this.mockMvc.perform(
+				MockMvcRequestBuilders.post(baseUrl + "/users/login")
+						.with(SecurityMockMvcRequestPostProcessors.httpBasic("john", "123456"))
+						.accept(MediaType.APPLICATION_JSON))
+				.andReturn().getResponse().getContentAsString();
+		assertDoesNotThrow(() -> {
+			objectMapper.readValue(jsonResponse, new TypeReference<Result<Map<String, Object>>>() {
+			});
+		});
+		Result<Map<String, Object>> result = objectMapper
+				.readValue(jsonResponse, new TypeReference<>() {
+				});
+		jwtToken = result.getData().get("token").toString();
+
 		existentWizardId = 2;
 		nonExistentWizardId = 20;
 		existentArtifactId = "artifact9";
@@ -80,7 +95,9 @@ public class WizardControllerTest {
 
 		// When
 		String jsonResponse = mockMvc.perform(
-				MockMvcRequestBuilders.get(baseUrl + "/wizards/" + existentWizardId)
+				MockMvcRequestBuilders
+						.get(baseUrl + "/wizards/" + existentWizardId)
+						.header("Authorization", "Bearer " + jwtToken)
 						.accept(MediaType.APPLICATION_JSON))
 				.andReturn().getResponse().getContentAsString();
 
@@ -110,7 +127,9 @@ public class WizardControllerTest {
 
 		// When
 		String jsonResponse = mockMvc.perform(
-				MockMvcRequestBuilders.get(baseUrl + "/wizards/" + nonExistentWizardId)
+				MockMvcRequestBuilders
+						.get(baseUrl + "/wizards/" + nonExistentWizardId)
+						.header("Authorization", "Bearer " + jwtToken)
 						.accept(MediaType.APPLICATION_JSON))
 				.andReturn().getResponse().getContentAsString();
 
@@ -135,6 +154,7 @@ public class WizardControllerTest {
 		// When
 		String jsonResponse = mockMvc.perform(
 				MockMvcRequestBuilders.get(baseUrl + "/wizards/")
+						.header("Authorization", "Bearer " + jwtToken)
 						.accept(MediaType.APPLICATION_JSON))
 				.andReturn().getResponse().getContentAsString();
 
@@ -163,6 +183,7 @@ public class WizardControllerTest {
 		// When
 		String jsonResponse = mockMvc.perform(
 				MockMvcRequestBuilders.post(baseUrl + "/wizards/")
+						.header("Authorization", "Bearer " + jwtToken)
 						.contentType(MediaType.APPLICATION_JSON)
 						.content(jsonWizard)
 						.accept(MediaType.APPLICATION_JSON))
@@ -198,7 +219,9 @@ public class WizardControllerTest {
 
 		// When
 		String jsonResponse = mockMvc.perform(
-				MockMvcRequestBuilders.post(baseUrl + "/wizards/")
+				MockMvcRequestBuilders
+						.post(baseUrl + "/wizards/")
+						.header("Authorization", "Bearer " + jwtToken)
 						.contentType(MediaType.APPLICATION_JSON)
 						.content(jsonWizardToSave)
 						.accept(MediaType.APPLICATION_JSON))
@@ -229,6 +252,7 @@ public class WizardControllerTest {
 		// When
 		String jsonResponse = mockMvc.perform(
 				MockMvcRequestBuilders.post(baseUrl + "/wizards/")
+						.header("Authorization", "Bearer " + jwtToken)
 						.contentType(MediaType.APPLICATION_JSON)
 						.content(jsonWizardToSave)
 						.accept(MediaType.APPLICATION_JSON))
@@ -258,6 +282,7 @@ public class WizardControllerTest {
 		// When
 		String jsonResponse = mockMvc.perform(
 				MockMvcRequestBuilders.put(baseUrl + "/wizards/" + existentWizardId)
+						.header("Authorization", "Bearer " + jwtToken)
 						.contentType(MediaType.APPLICATION_JSON)
 						.content(jsonWizardToUpdate)
 						.accept(MediaType.APPLICATION_JSON))
@@ -289,6 +314,7 @@ public class WizardControllerTest {
 		// When
 		String jsonResponse = mockMvc.perform(
 				MockMvcRequestBuilders.put(baseUrl + "/wizards/" + nonExistentWizardId)
+						.header("Authorization", "Bearer " + jwtToken)
 						.accept(MediaType.APPLICATION_JSON)
 						.contentType(MediaType.APPLICATION_JSON)
 						.content(jsonWizardUpdated))
@@ -316,6 +342,7 @@ public class WizardControllerTest {
 		// When
 		String jsonResponse = mockMvc.perform(
 				MockMvcRequestBuilders.delete(baseUrl + "/wizards/" + existentWizardId)
+						.header("Authorization", "Bearer " + jwtToken)
 						.accept(MediaType.APPLICATION_JSON))
 				.andReturn().getResponse().getContentAsString();
 
@@ -341,6 +368,7 @@ public class WizardControllerTest {
 		// When
 		String jsonResponse = mockMvc.perform(
 				MockMvcRequestBuilders.delete(baseUrl + "/wizards/" + nonExistentWizardId)
+						.header("Authorization", "Bearer " + jwtToken)
 						.accept(MediaType.APPLICATION_JSON))
 				.andReturn().getResponse().getContentAsString();
 
@@ -367,7 +395,9 @@ public class WizardControllerTest {
 
 		// When
 		String jsonResponse = mockMvc.perform(
-				MockMvcRequestBuilders.put(baseUrl + "/wizards/" + existentWizardId + "/artifacts/" + existentArtifactId)
+				MockMvcRequestBuilders
+						.put(baseUrl + "/wizards/" + existentWizardId + "/artifacts/" + existentArtifactId)
+						.header("Authorization", "Bearer " + jwtToken)
 						.accept(MediaType.APPLICATION_JSON))
 				.andReturn().getResponse().getContentAsString();
 
@@ -391,7 +421,9 @@ public class WizardControllerTest {
 	void testAssignArtifactWithNonExistentWizardId() throws Exception {
 		// When
 		String jsonResponse = mockMvc.perform(
-				MockMvcRequestBuilders.put(baseUrl + "/wizards/" + nonExistentWizardId + "/artifacts/" + existentArtifactId)
+				MockMvcRequestBuilders
+						.put(baseUrl + "/wizards/" + nonExistentWizardId + "/artifacts/" + existentArtifactId)
+						.header("Authorization", "Bearer " + jwtToken)
 						.accept(MediaType.APPLICATION_JSON))
 				.andReturn().getResponse().getContentAsString();
 
@@ -413,7 +445,9 @@ public class WizardControllerTest {
 	void testAssignArtifactWithNonExistentArtifactId() throws Exception {
 		// When
 		String jsonResponse = mockMvc.perform(
-				MockMvcRequestBuilders.put(baseUrl + "/wizards/" + existentWizardId + "/artifacts/" + nonExistentArtifactId)
+				MockMvcRequestBuilders
+						.put(baseUrl + "/wizards/" + existentWizardId + "/artifacts/" + nonExistentArtifactId)
+						.header("Authorization", "Bearer " + jwtToken)
 						.accept(MediaType.APPLICATION_JSON))
 				.andReturn().getResponse().getContentAsString();
 
