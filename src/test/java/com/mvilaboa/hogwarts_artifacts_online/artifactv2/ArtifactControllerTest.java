@@ -27,7 +27,7 @@ import com.mvilaboa.hogwarts_artifacts_online.system.StatusCode;
 @Transactional
 @SpringBootTest
 @TestPropertySource("classpath:application-test.properties")
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(addFilters = false)  // Así quitamos spring security
 public class ArtifactControllerTest {
 
 	@Autowired
